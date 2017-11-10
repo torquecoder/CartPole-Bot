@@ -9,7 +9,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
 
-EPISODES = 3000
+EPISODES = 1000
 
 
 class DQNAgent:
@@ -67,26 +67,18 @@ if __name__ == "__main__":
     state_size = env.observation_space.shape[0]
     action_size = env.action_space.n
     agent = DQNAgent(state_size, action_size)
-    #agent.load("cartpole-dqn.h5")
-    done = False
-    batch_size = 64
+    agent.load("cartpole-dqn.h5")
 
     for e in range(EPISODES):
         state = env.reset()
         state = np.reshape(state, [1, state_size])
-        for time in range(5000):
-            #env.render()
-            action = agent.act(state)
+        for time in range(500):
+            env.render()
+            act_values = agent.model.predict(state)
+            action = np.argmax(act_values[0])
             next_state, reward, done, _ = env.step(action)
-            reward = reward if not done else -10
             next_state = np.reshape(next_state, [1, state_size])
-            agent.remember(state, action, reward, next_state, done)
             state = next_state
             if done:
-                print("episode: {}/{}, score: {}, e: {:.2}"
-                      .format(e, EPISODES, time, agent.epsilon))
+                print("Episode {}: Score: {}".format(e, time))
                 break
-        if len(agent.memory) > batch_size:
-            agent.replay(batch_size)
-
-    agent.save("/output/cartpole-dqn.h5")
